@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <string>
+#include <string_view>
 
 namespace guide
 {
+
     namespace parcing_details
     {
         /**
@@ -113,6 +116,22 @@ namespace guide
             return {std::string(line.substr(0, space_pos)),
                     std::string(line.substr(not_space, colon_pos - not_space)),
                     std::string(line.substr(colon_pos + 1))};
+        }
+    }
+
+    void FormTransportBase(std::istream &input, TransportCatalogue &transport_catalogue)
+    {
+        int base_request_count;
+        input >> base_request_count >> std::ws;
+        {
+            InputReader reader;
+            for (int i = 0; i < base_request_count; ++i)
+            {
+                std::string line;
+                getline(input, line);
+                reader.ParseLine(line);
+            }
+            reader.ApplyCommands(transport_catalogue);
         }
     }
 

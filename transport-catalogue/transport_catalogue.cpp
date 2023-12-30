@@ -4,7 +4,7 @@ namespace guide
 {
     using namespace stop_coordinate;
 
-    void TransportCatalogue::AddStop(std::string name, Coordinates coordinates)
+    void TransportCatalogue::AddStop(const std::string &name, Coordinates coordinates)
     {
         if (!stops_.count(name))
         {
@@ -13,7 +13,7 @@ namespace guide
         }
     }
 
-    void TransportCatalogue::AddBus(std::string name, std::vector<std::string_view> stops)
+    void TransportCatalogue::AddBus(const std::string &name, const std::vector<std::string_view> &stops)
     {
         if (!buses_.count(name))
         {

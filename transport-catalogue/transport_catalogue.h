@@ -1,14 +1,14 @@
 #pragma once
 #include <algorithm>
+#include <deque>
+#include <iostream>
 #include <map>
 #include <set>
-#include <string_view>
 #include <string>
-#include <vector>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
-#include <iostream>
-#include <deque>
+#include <vector>
 
 #include "geo.h"
 
@@ -24,9 +24,9 @@ namespace guide
 	class TransportCatalogue
 	{
 	public:
-		void AddStop(std::string name, stop_coordinate::Coordinates coordinates);
+		void AddStop(const std::string &name, stop_coordinate::Coordinates coordinates);
 
-		void AddBus(std::string name, std::vector<std::string_view> stops);
+		void AddBus(const std::string &name, const std::vector<std::string_view> &stops);
 
 		BusInfo GetBusInfo(std::string_view name) const;
 

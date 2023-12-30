@@ -3,6 +3,18 @@
 
 namespace guide
 {
+
+    void GetRequests(const TransportCatalogue &transport_catalogue, std::istream &input, std::ostream &output)
+    {
+        int stat_request_count;
+        input >> stat_request_count >> std::ws;
+        for (int i = 0; i < stat_request_count; ++i)
+        {
+            std::string line;
+            getline(input, line);
+            ParseAndPrintStat(transport_catalogue, line, output);
+        }
+    };
     void ParseAndPrintStat(const TransportCatalogue &transport_catalogue, std::string_view request,
                            std::ostream &output)
     {

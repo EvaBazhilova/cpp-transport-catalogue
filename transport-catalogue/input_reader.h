@@ -2,7 +2,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
 #include "geo.h"
 #include "transport_catalogue.h"
 
@@ -26,6 +25,8 @@ namespace guide
         std::string id;          // id маршрута или остановки
         std::string description; // Параметры команды
     };
+
+    void FormTransportBase(std::istream &input, TransportCatalogue &transport_catalogue);
 
     class InputReader
     {
