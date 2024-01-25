@@ -2,14 +2,24 @@
 
 namespace guide
 {
-    using namespace stop_coordinate;
+    // using namespace stop_coordinate;
 
-    void TransportCatalogue::AddStop(const std::string &name, Coordinates coordinates)
+    void TransportCatalogue::AddStop(const std::string &name, stop_coordinate::Coordinates coordinates)
     {
         if (!stops_.count(name))
         {
             all_items_.push_back(name);
             stops_[all_items_.back()] = std::move(coordinates);
+        }
+    }
+
+    void TransportCatalogue::AddDistances(const std::string &name, std::vector<stop_coordinate::StopDistances> stop_distances)
+    {
+        for (auto info : stop_distances)
+        {
+            auto it1 = std::find(all_items_.begin(), all_items_.end(), name);
+            auto it2 = std::find(all_items_.begin(), all_items_.end(), info.stop);
+            distances_[*it1][*it2] = info.distance;
         }
     }
 
@@ -32,11 +42,12 @@ namespace guide
         int stops_on_route = 0;
         int unique_stops = 0;
         double route_length = 0.0;
+        double curvature = 0.0;
 
         // Если маршрут не найден
         if (!buses_.count(name))
         {
-            return {0, 0, 0};
+            return {0, 0, 0, 0};
         }
 
         stops_on_route = static_cast<int>(buses_.at(name).size());
@@ -51,9 +62,25 @@ namespace guide
 
         for (size_t i = 0; i < static_cast<size_t>(stops_on_route - 1); ++i)
         {
-            route_length += ComputeDistance(stops_.at(buses_.at(name)[i]), stops_.at(buses_.at(name)[i + 1]));
+            curvature += ComputeDistance(stops_.at(buses_.at(name)[i]), stops_.at(buses_.at(name)[i + 1]));
+            if (distances_.count(buses_.at(name)[i]))
+            {
+                if (distances_.at(buses_.at(name)[i]).count(buses_.at(name)[i + 1]))
+                {
+                    route_length += distances_.at(buses_.at(name)[i]).at(buses_.at(name)[i + 1]);
+                }
+                else
+                {
+                    route_length += distances_.at(buses_.at(name)[i + 1]).at(buses_.at(name)[i]);
+                }
+            }
+            else
+            {
+                route_length += distances_.at(buses_.at(name)[i + 1]).at(buses_.at(name)[i]);
+            }
         }
-        return {stops_on_route, unique_stops, route_length};
+        curvature = route_length / curvature;
+        return {stops_on_route, unique_stops, route_length, curvature};
     }
 
     std::set<std::string_view> TransportCatalogue::GetStopInfo(std::string_view name) const
@@ -104,6 +131,14 @@ namespace guide
                 std::cout << bus << " - ";
             }
             std::cout << std::endl;
+        }
+        std ::cout << "-----------------Stops--and--Distances-----------------" << std::endl;
+        for (const auto &[stop, info] : distances_)
+        {
+            for (const auto [stop2, distance] : info)
+            {
+                std::cout << stop << " " << stop2 << " - " << distance << std::endl;
+            }
         }
         std ::cout << "---------------------------------" << std::endl;
     }

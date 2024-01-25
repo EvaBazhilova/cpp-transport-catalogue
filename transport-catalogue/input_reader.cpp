@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace guide
 {
@@ -27,12 +29,25 @@ namespace guide
             }
 
             auto not_space2 = str.find_first_not_of(' ', comma + 1);
+            auto comma2 = str.find(',', not_space2);
 
-            double lat = std::stod(std::string(str.substr(not_space, comma - not_space)));
-            double lng = std::stod(std::string(str.substr(not_space2)));
+            double lat;
+            double lng;
+
+            if (comma2 == str.npos)
+            {
+                lat = std::stod(std::string(str.substr(not_space, comma - not_space)));
+                lng = std::stod(std::string(str.substr(not_space2)));
+            }
+            else
+            {
+                lat = std::stod(std::string(str.substr(not_space, comma - not_space)));
+                lng = std::stod(std::string(str.substr(not_space2, comma2 - not_space2)));
+            }
 
             return {lat, lng};
         }
+
         namespace detail
         {
             /**
@@ -72,6 +87,32 @@ namespace guide
 
                 return result;
             }
+        }
+
+        std::vector<stop_coordinate::StopDistances> SplitStopDistances(std::string_view info)
+        {
+            std::vector<stop_coordinate::StopDistances> stop_distances;
+            info = detail::Trim(info);
+            auto comma = info.find(' ');
+            auto comma2 = info.find(' ', comma + 1);
+            info = info.substr(comma2 + 1, info.size() - comma2 + 1);
+            while (info.find("m to") != std::string::npos)
+            {
+                auto m = info.find('m');
+                if (info.find(',') == std::string::npos)
+                {
+                    stop_distances.push_back({std::stoi(std::string(info.substr(0, m))), info.substr(m + 5, info.size() - m - 5)});
+                    info = "";
+                }
+                else
+                {
+                    stop_distances.push_back({std::stoi(std::string(info.substr(0, m))), info.substr(m + 5, info.find(',') - m - 5)});
+                    comma = info.find(',');
+                    info = info.substr(comma+1, info.size()-comma-1);
+                }
+                //std::cout << stop_distances.back().distance << " " << stop_distances.back().stop << std::endl; 
+            }
+            return stop_distances;
         }
 
         /**
@@ -150,7 +191,14 @@ namespace guide
         {
             if (command.command == "Stop")
             {
-                catalogue.AddStop(std::move(command.id), parcing_details::ParseCoordinates(command.description));
+                catalogue.AddStop(command.id, parcing_details::ParseCoordinates(command.description));
+            };
+        }
+        for (const auto &command : commands_)
+        {
+            if (command.command == "Stop" && command.description.find("m to ") != std::string::npos)
+            {
+                catalogue.AddDistances(command.id, parcing_details::SplitStopDistances(command.description));
             };
         }
         for (const auto &command : commands_)

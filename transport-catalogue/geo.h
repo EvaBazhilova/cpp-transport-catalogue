@@ -6,6 +6,12 @@ namespace guide
 {
     namespace stop_coordinate
     {
+        struct StopDistances
+        {
+            int distance;          // расстояние до ближайшей остановки
+            std::string_view stop; // название ближайшей остановки
+        };
+
         struct Coordinates
         {
             double lat;
