@@ -1,17 +1,19 @@
-#include <iostream> 
-#include <string> 
- 
-#include "input_reader.h" 
-#include "stat_reader.h" 
- 
-using namespace std; 
- 
-int main() 
-{ 
- 
-    guide::TransportCatalogue catalogue; 
- 
-    guide::FormTransportBase(cin, catalogue); 
- 
-    guide::GetRequests(catalogue, cin, cout); 
+#include "json_reader.h"
+#include "request_handler.h"
+#include "map_renderer.h"
+
+#include <fstream>
+
+using namespace std;
+
+int main()
+{
+    //std::ofstream out; // поток для записи
+    //out.open("out.txt");
+    //std::ifstream in("in.txt");
+    // setlocale(LC_ALL, "Russian");
+    guide::TransportCatalogue catalogue;
+    map_renderer::MapRenderer map_renderer;
+    guide::FormTransportBaseAndRequests(сin, catalogue, map_renderer, сout);
+    //catalogue.GetAllInfo();
 }

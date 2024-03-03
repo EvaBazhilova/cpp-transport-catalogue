@@ -2,7 +2,7 @@
 
 namespace guide
 {
-    // using namespace stop_coordinate;
+    using namespace stop_coordinate;
 
     void TransportCatalogue::AddStop(const std::string &name, stop_coordinate::Coordinates coordinates)
     {
@@ -13,7 +13,7 @@ namespace guide
         }
     }
 
-    void TransportCatalogue::AddDistances(const std::string &name, std::vector<stop_coordinate::StopDistances> stop_distances)
+    void TransportCatalogue::AddDistances(const std::string &name, const std::vector<stop_coordinate::StopDistances> &stop_distances)
     {
         for (auto info : stop_distances)
         {
@@ -31,8 +31,21 @@ namespace guide
             for (const auto stop : stops)
             {
                 auto it = std::find(all_items_.begin(), all_items_.end(), stop);
+                coordinates_.push_back(stops_[*it]);
                 buses_[all_items_.back()].push_back(*it);
                 stops_and_buses_[*it].insert(all_items_.back());
+            }
+        }
+    }
+    void TransportCatalogue::AddOneWayBus(const std::string &name, const std::vector<std::string_view> &stops)
+    {
+        if (!one_way_buses_.count(name))
+        {
+            for (const auto stop : stops)
+            {
+                auto it = std::find(all_items_.begin(), all_items_.end(), stop);
+                auto it1 = std::find(all_items_.begin(), all_items_.end(), name);
+                one_way_buses_[*it1].push_back(*it);
             }
         }
     }
@@ -107,6 +120,7 @@ namespace guide
 
     void TransportCatalogue::GetAllInfo() const
     {
+        std::setprecision(6);
         std ::cout << "---------------Stops-------------------" << std::endl;
         for (const auto &[stop, coordinate] : stops_)
         {
@@ -114,6 +128,15 @@ namespace guide
         }
         std ::cout << "-----------------Buses-----------------" << std::endl;
         for (const auto &[number, stops] : buses_)
+        {
+            std::cout << number << std::endl;
+            for (const auto stop : stops)
+            {
+                std::cout << stop << " - ";
+            }
+            std::cout << std::endl;
+        }
+        for (const auto &[number, stops] : one_way_buses_)
         {
             std::cout << number << std::endl;
             for (const auto stop : stops)
@@ -135,7 +158,7 @@ namespace guide
         std ::cout << "-----------------Stops--and--Distances-----------------" << std::endl;
         for (const auto &[stop, info] : distances_)
         {
-            for (const auto [stop2, distance] : info)
+            for (const auto &[stop2, distance] : info)
             {
                 std::cout << stop << " " << stop2 << " - " << distance << std::endl;
             }
