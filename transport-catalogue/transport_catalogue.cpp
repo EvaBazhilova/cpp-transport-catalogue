@@ -165,4 +165,27 @@ namespace guide
         }
         std ::cout << "---------------------------------" << std::endl;
     }
+
+    std::map<std::string_view, stop_coordinate::Coordinates> TransportCatalogue::GetStops() const
+    {
+        return stops_;
+    }
+    std::map<std::string_view, std::vector<std::string_view>> TransportCatalogue::GetBuses() const
+    {
+        return buses_;
+    }
+    std::map<std::string_view, std::vector<std::string_view>> TransportCatalogue::GetOneWayBuses() const
+    {
+        return one_way_buses_;
+    }
+
+    std::map<std::string_view, std::set<std::string_view>> TransportCatalogue::GetStopAndBuses() const
+    {
+        return stops_and_buses_;
+    }
+
+    std::vector<stop_coordinate::Coordinates> TransportCatalogue::GetCoordinates() const
+    {
+        return coordinates_;
+    }
 }

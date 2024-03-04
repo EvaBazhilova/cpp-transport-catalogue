@@ -69,8 +69,10 @@ namespace map_renderer
         return settings_.color_palette;
     }
 
-    void MapRenderer::DrawLines(svg::Document &doc, const SphereProjector &proj)
+    void MapRenderer::DrawLines(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue)
     {
+        auto buses_ = transport_catalogue.GetBuses();
+        auto stops_ = transport_catalogue.GetStops();
         size_t count = 0;
         const size_t bus_count = buses_.size() - 1;
         for (const auto &[bus, stops] : buses_)
@@ -96,8 +98,11 @@ namespace map_renderer
             }
         }
     }
-    void MapRenderer::DrawBusNames(svg::Document &doc, const SphereProjector &proj)
+    void MapRenderer::DrawBusNames(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue)
     {
+        auto buses_ = transport_catalogue.GetBuses();
+        auto one_way_buses_ = transport_catalogue.GetOneWayBuses();
+        auto stops_ = transport_catalogue.GetStops();
         size_t count = 0;
         const size_t bus_count = buses_.size() - 1;
         for (const auto &[bus, stops] : one_way_buses_)
@@ -159,8 +164,10 @@ namespace map_renderer
             }
         }
     }
-    void MapRenderer::DrawStops(svg::Document &doc, const SphereProjector &proj)
+    void MapRenderer::DrawStops(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue)
     {
+        auto stops_and_buses_ = transport_catalogue.GetStopAndBuses();
+        auto stops_ = transport_catalogue.GetStops();
         for (const auto &[stop, buses] : stops_and_buses_)
         {
             if (!buses.empty())
@@ -173,8 +180,10 @@ namespace map_renderer
             }
         }
     }
-    void MapRenderer::DrawStopNames(svg::Document &doc, const SphereProjector &proj)
+    void MapRenderer::DrawStopNames(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue)
     {
+        auto stops_and_buses_ = transport_catalogue.GetStopAndBuses();
+        auto stops_ = transport_catalogue.GetStops();
         for (const auto &[stop, buses] : stops_and_buses_)
         {
             if (!buses.empty())
@@ -202,8 +211,9 @@ namespace map_renderer
             }
         }
     }
-    void MapRenderer::DrawMap(std::ostream &output)
+    void MapRenderer::DrawMap(std::ostream &output, const TransportCatalogue &transport_catalogue)
     {
+        auto coordinates_ = transport_catalogue.GetCoordinates();
         auto end = coordinates_.end();
         for (auto it = coordinates_.begin(); it != end; ++it)
         {
@@ -216,10 +226,10 @@ namespace map_renderer
 
         svg::Document doc;
 
-        DrawLines(doc, proj);
-        DrawBusNames(doc, proj);
-        DrawStops(doc, proj);
-        DrawStopNames(doc, proj);
+        DrawLines(doc, proj, transport_catalogue);
+        DrawBusNames(doc, proj, transport_catalogue);
+        DrawStops(doc, proj, transport_catalogue);
+        DrawStopNames(doc, proj, transport_catalogue);
         doc.Render(output);
     }
 }

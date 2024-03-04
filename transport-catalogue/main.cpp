@@ -14,6 +14,6 @@ int main()
     // setlocale(LC_ALL, "Russian");
     guide::TransportCatalogue catalogue;
     map_renderer::MapRenderer map_renderer;
-    guide::FormTransportBaseAndRequests(сin, catalogue, map_renderer, сout);
+    guide::FormTransportBaseAndRequests(cin, catalogue, map_renderer, cout);
     //catalogue.GetAllInfo();
 }

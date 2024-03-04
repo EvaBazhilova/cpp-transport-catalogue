@@ -2,6 +2,7 @@
 #include "svg.h"
 #include "geo.h"
 #include "domain.h"
+#include "transport_catalogue.h"
 
 #include <algorithm>
 #include <stdexcept>
@@ -108,7 +109,7 @@ namespace map_renderer
         double zoom_coeff_ = 0;
     };
 
-    class MapRenderer
+    class MapRenderer : public TransportCatalogue
     {
     public:
         void SetSettings(settings sett);
@@ -126,11 +127,11 @@ namespace map_renderer
         double GetUngerlayerWidth();
         std::vector<svg::Color> GetColorPalette();
 
-        void DrawLines (svg::Document &doc, const SphereProjector &proj);
-        void DrawBusNames(svg::Document &doc, const SphereProjector &proj);
-        void DrawStops (svg::Document &doc, const SphereProjector &proj);
-        void DrawStopNames (svg::Document &doc, const SphereProjector &proj);
-        void DrawMap(std::ostream &output);
+        void DrawLines(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue);
+        void DrawBusNames(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue);
+        void DrawStops(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue);
+        void DrawStopNames(svg::Document &doc, const SphereProjector &proj, const TransportCatalogue &transport_catalogue);
+        void DrawMap(std::ostream &output, const TransportCatalogue &transport_catalogue);
 
     private:
         settings settings_;

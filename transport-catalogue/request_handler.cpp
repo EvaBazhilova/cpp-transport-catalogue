@@ -60,7 +60,7 @@ namespace guide
         {
             answers_info.insert({"request_id", id});
             std::ostringstream strm; 
-            map_renderer.DrawMap(strm);
+            map_renderer.DrawMap(strm, transport_catalogue);
             std::string s = strm.str();
             answers_info.insert({"map", s});
         }
