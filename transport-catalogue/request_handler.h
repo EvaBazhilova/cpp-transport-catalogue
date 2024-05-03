@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "transport_catalogue.h"
+#include "json_builder.h"
 #include "json.h"
 #include "map_renderer.h"
 

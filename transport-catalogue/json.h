@@ -27,11 +27,12 @@ namespace json
     std::ostream &operator<<(std::ostream &os, const Node &node);
 
     class Node final
-    : private std::variant<std::nullptr_t, Array, Dict, bool, double, int, std::string> 
-{
+        : private std::variant<std::nullptr_t, Array, Dict, bool, double, int, std::string>
+    {
     public:
         /* Реализуйте Node, используя std::variant */
-       using variant::variant;
+        using variant::variant;
+        using Value = variant;
 
         const variant &GetValue() const;
 
@@ -52,7 +53,6 @@ namespace json
 
         bool operator==(const Node &node) const;
         bool operator!=(const Node &node) const;
-
     };
 
     class Document
@@ -68,7 +68,7 @@ namespace json
     private:
         Node root_;
     };
-    
+
     Node LoadNull(std::istream &input);
     Node LoadString(std::istream &input);
     Node LoadArray(std::istream &input);
