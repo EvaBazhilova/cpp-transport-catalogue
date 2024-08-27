@@ -20,6 +20,17 @@ namespace guide
             auto it1 = std::find(all_items_.begin(), all_items_.end(), name);
             auto it2 = std::find(all_items_.begin(), all_items_.end(), info.stop);
             distances_[*it1][*it2] = info.distance;
+            if (distances_.count(*it2))
+            {
+                if (!distances_.at(*it2).count(*it1))
+                {
+                    distances_[*it2][*it1] = info.distance;
+                }
+            }
+            else
+            {
+                distances_[*it2][*it1] = info.distance;
+            }
         }
     }
 
@@ -36,6 +47,12 @@ namespace guide
                 stops_and_buses_[*it].insert(all_items_.back());
             }
         }
+    }
+
+    void TransportCatalogue::AddRoundBus(const std::string &name)
+    {
+        auto it = std::find(all_items_.begin(), all_items_.end(), name);
+        round_buses_.insert(*it);
     }
     void TransportCatalogue::AddOneWayBus(const std::string &name, const std::vector<std::string_view> &stops)
     {
@@ -145,6 +162,12 @@ namespace guide
             }
             std::cout << std::endl;
         }
+        std ::cout << "-----------------Round--Buses-----------------" << std::endl;
+        for (const auto &bus : round_buses_)
+        {
+            std::cout << bus << " ";
+        }
+        std::cout << std::endl;
         std ::cout << "-----------------Stops--and--Buses-----------------" << std::endl;
         for (const auto &[stop, buses] : stops_and_buses_)
         {
@@ -166,26 +189,58 @@ namespace guide
         std ::cout << "---------------------------------" << std::endl;
     }
 
-    std::map<std::string_view, stop_coordinate::Coordinates> TransportCatalogue::GetStops() const
+    const std::map<std::string_view, stop_coordinate::Coordinates>& TransportCatalogue::GetStops() const
     {
         return stops_;
     }
-    std::map<std::string_view, std::vector<std::string_view>> TransportCatalogue::GetBuses() const
+    size_t TransportCatalogue::GetStopsCount() const
+    {
+        return stops_.size();
+    }
+    const std::map<std::string_view, std::vector<std::string_view>>& TransportCatalogue::GetBuses() const
     {
         return buses_;
     }
-    std::map<std::string_view, std::vector<std::string_view>> TransportCatalogue::GetOneWayBuses() const
+    const std::map<std::string_view, std::vector<std::string_view>>& TransportCatalogue::GetOneWayBuses() const
     {
         return one_way_buses_;
     }
 
-    std::map<std::string_view, std::set<std::string_view>> TransportCatalogue::GetStopAndBuses() const
+    const std::map<std::string_view, std::set<std::string_view>>& TransportCatalogue::GetStopAndBuses() const
     {
         return stops_and_buses_;
     }
 
-    std::vector<stop_coordinate::Coordinates> TransportCatalogue::GetCoordinates() const
+    const std::vector<stop_coordinate::Coordinates>& TransportCatalogue::GetCoordinates() const
     {
-        return coordinates_;
+        const std::vector<stop_coordinate::Coordinates>& ref = coordinates_;
+        return ref;
+    }
+
+    std::set<std::string_view> TransportCatalogue::GetStopsName() const
+    {
+        std::set<std::string_view> stops_names;
+        for (const auto &[stop, coordinates] : stops_)
+        {
+            stops_names.insert(stop);
+        }
+        return stops_names;
+    }
+
+    int TransportCatalogue::GetDistance(std::string_view from, std::string_view to) const
+    {
+        if (distances_.count(from))
+        {
+            return distances_.at(from).at(to);
+        }
+        else
+        {
+            return distances_.at(to).at(from);
+        }
+    }
+
+    bool TransportCatalogue::IsBusRound(std::string_view bus) const
+    {
+        return round_buses_.count(bus);
     }
 }

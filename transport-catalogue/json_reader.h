@@ -7,6 +7,7 @@
 #include "json.h"
 #include "request_handler.h"
 #include "map_renderer.h"
+#include "transport_router.h"
 
 namespace guide
 {
@@ -30,7 +31,8 @@ namespace guide
     };
 
     void FormTransportBase(const json::Array &base_requests, TransportCatalogue &transport_catalogue);
-    json::Array FormRequestsAnswers(const json::Array &stat_requests, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer);
-    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer,  std::ostream &output);
+    json::Array FormRequestsAnswers(const json::Array &stat_requests, guide::RequestHandler &request_handler);
+    void FormRouteBase(const json::Dict &routing_settings, router::TransportRouter &transport_router, TransportCatalogue &transport_catalogue);
+    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer, router::TransportRouter &transport_router, guide::RequestHandler &request_handler, std::ostream &output);
 
 }

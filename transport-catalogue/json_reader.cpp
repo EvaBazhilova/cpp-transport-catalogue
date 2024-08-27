@@ -1,5 +1,6 @@
 #include "json_reader.h"
 #include "svg.h"
+#include "request_handler.h"
 
 #include <string>
 #include <vector>
@@ -48,23 +49,31 @@ namespace guide
                 {
                     transport_catalogue.AddBus(info.AsMap().at("name").AsString(), stops);
                     transport_catalogue.AddOneWayBus(info.AsMap().at("name").AsString(), stops);
+                    transport_catalogue.AddRoundBus(info.AsMap().at("name").AsString());
                 }
             }
         }
     }
 
-    json::Array FormRequestsAnswers(const json::Array &stat_requests, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer)
+    json::Array FormRequestsAnswers(const json::Array &stat_requests, guide::RequestHandler &request_handler)
     {
         json::Array answers;
         for (const auto &request : stat_requests)
         {
-            if (request.AsMap().count("name"))
+            if (request.AsMap().at("type").AsString() == "Bus" || request.AsMap().at("type").AsString() == "Stop")
             {
-                answers.push_back(ParseStat(transport_catalogue, map_renderer, request.AsMap().at("id").AsInt(), request.AsMap().at("type").AsString(), request.AsMap().at("name").AsString()));
+                answers.push_back(request_handler.FormBusAndStopAnswer(request.AsMap().at("id").AsInt(), request.AsMap().at("type").AsString(), request.AsMap().at("name").AsString()));
+                // std::cout << "Form Bus ans Stop Answers is completed!" << std::endl;
             }
-            else
+            else if (request.AsMap().at("type").AsString() == "Map")
             {
-                answers.push_back(ParseStat(transport_catalogue, map_renderer, request.AsMap().at("id").AsInt(), request.AsMap().at("type").AsString(), "map"));
+                answers.push_back(request_handler.FormMapAnswer(request.AsMap().at("id").AsInt()));
+                // std::cout << "Form Map Answers is completed!" << std::endl;
+            }
+            else if (request.AsMap().at("type").AsString() == "Route")
+            {
+                answers.push_back(request_handler.FormRouteAnswer(request.AsMap().at("id").AsInt(), request.AsMap().at("from").AsString(), request.AsMap().at("to").AsString()));
+                // std::cout << "Form Route Answers is completed!" << std::endl;
             }
         }
         return answers;
@@ -145,13 +154,25 @@ namespace guide
         map_renderer.SetSettings(sett);
     }
 
-    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer, std::ostream &output)
+    void FormRouteBase(const json::Dict &routing_settings, router::TransportRouter &transport_router, TransportCatalogue &transport_catalogue)
+    {
+        transport_router.SetBusWaitTime(routing_settings.at("bus_wait_time").AsInt()).SetBusVelocity(routing_settings.at("bus_velocity").AsInt());
+        transport_router.FormTransportRouter(transport_catalogue);
+    }
+
+    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer, router::TransportRouter &transport_router, guide::RequestHandler &request_handler, std::ostream &output)
     {
         json::Document doc = json::Load(input);
         // json::Print(doc, output);
         FormTransportBase(doc.GetRoot().AsMap().at("base_requests").AsArray(), transport_catalogue);
+        //std::cerr << "Transport Base is complited!" << std::endl;
+        //  transport_catalogue.GetAllInfo();
         SetRenderSettings(doc.GetRoot().AsMap().at("render_settings").AsMap(), map_renderer);
-        json::Document requests(FormRequestsAnswers(doc.GetRoot().AsMap().at("stat_requests").AsArray(), transport_catalogue, map_renderer));
+        //std::cerr << "Render Settings is complited!" << std::endl;
+        FormRouteBase(doc.GetRoot().AsMap().at("routing_settings").AsMap(), transport_router, transport_catalogue);
+        //std::cerr << "Route Base is complited!" << std::endl;
+        json::Document requests(FormRequestsAnswers(doc.GetRoot().AsMap().at("stat_requests").AsArray(), request_handler));
+        //std::cerr << "Requests Answers is complited!" << std::endl;
         json::Print(requests, output);
     }
 }
