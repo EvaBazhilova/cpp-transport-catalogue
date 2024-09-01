@@ -20,4 +20,17 @@ namespace guide
         double route_length;
         double curvature;
     };
+
+    struct RouteWaitInfo
+    {
+        std::string stop_name;
+        int time;
+    };
+
+    struct RouteBusInfo
+    {
+        std::string bus;
+        int span_count;
+        double time;
+    };
 }

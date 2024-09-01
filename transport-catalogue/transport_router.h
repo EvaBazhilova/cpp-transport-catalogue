@@ -3,38 +3,26 @@
 #include "transport_catalogue.h"
 #include "router.h"
 #include "graph.h"
+#include "domain.h"
 
 #include <optional>
 #include <memory>
+#include <variant>
+#include <vector>
+#include <string>
 
 namespace router
 {
     class TransportRouter
     {
     public:
-        TransportRouter &SetBusWaitTime(int bus_wait_time);
+        TransportRouter(int bus_wait_time, int bus_velocity, guide::TransportCatalogue &transport_catalogue);
 
-        TransportRouter &SetBusVelocity(int bus_velocity);
-
-        void FormTransportRouter(guide::TransportCatalogue &transport_catalogue);
-
-        void GetBusInfo() const;
-
-        const std::unique_ptr<graph::DirectedWeightedGraph<double>>& GetGraph() const;
-
-        std::optional<graph::Router<double>::RouteInfo> BuildRoute(std::string_view from, std::string_view to) const;
+        std::optional<std::vector<std::variant<guide::RouteWaitInfo, guide::RouteBusInfo>>> GetRouteInfo(std::string_view from, std::string_view to) const;
 
         void PrintGraph();
 
-        std::string GetStopName(size_t edge_id) const;
-
-        int GetBusTimeWait() const;
-
-        size_t GetStopsCount() const;
-
-        std::string GetBus(const graph::Edge<double> &edge) const;
-
-        int GetSpanCount(const graph::Edge<double> &edge) const;
+        void PrintBusInfo() const;
 
     private:
         int bus_wait_time_ = 0;
@@ -47,5 +35,15 @@ namespace router
         size_t GetStopNumber(std::string_view stop) const;
 
         int GetDistance(guide::TransportCatalogue &transport_catalogue, const std::vector<std::string_view> &stops, size_t from, size_t to) const;
+
+        std::string GetStopName(size_t edge_id) const;
+
+        int GetBusTimeWait() const;
+
+        size_t GetStopsCount() const;
+
+        std::string GetBus(const graph::Edge<double> &edge) const;
+
+        int GetSpanCount(const graph::Edge<double> &edge) const;
     };
 }

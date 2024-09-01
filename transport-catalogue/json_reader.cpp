@@ -119,20 +119,6 @@ namespace guide
 
     void SetRenderSettings(const json::Dict &render_settings, map_renderer::MapRenderer &map_renderer)
     {
-        /*
-        double width;
-        double height;
-        double padding;
-        double line_width;
-        double stop_radius;
-        int bus_label_font_size;
-        svg::Point bus_label_offset;
-        int stop_label_font_size;
-        svg::Point stop_label_offset;
-        Color underlayer_color;
-        double underlayer_width;
-        std::vector<Color> color_palette;
-        */
         map_renderer::settings sett;
         sett.width = render_settings.at("width").AsDouble();
         sett.height = render_settings.at("height").AsDouble();
@@ -154,25 +140,21 @@ namespace guide
         map_renderer.SetSettings(sett);
     }
 
-    void FormRouteBase(const json::Dict &routing_settings, router::TransportRouter &transport_router, TransportCatalogue &transport_catalogue)
-    {
-        transport_router.SetBusWaitTime(routing_settings.at("bus_wait_time").AsInt()).SetBusVelocity(routing_settings.at("bus_velocity").AsInt());
-        transport_router.FormTransportRouter(transport_catalogue);
-    }
 
-    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer, router::TransportRouter &transport_router, guide::RequestHandler &request_handler, std::ostream &output)
+    void FormTransportBaseAndRequests(std::istream &input, TransportCatalogue &transport_catalogue, map_renderer::MapRenderer &map_renderer, std::ostream &output)
     {
         json::Document doc = json::Load(input);
         // json::Print(doc, output);
         FormTransportBase(doc.GetRoot().AsMap().at("base_requests").AsArray(), transport_catalogue);
-        //std::cerr << "Transport Base is complited!" << std::endl;
-        //  transport_catalogue.GetAllInfo();
+        // std::cerr << "Transport Base is complited!" << std::endl;
+        //   transport_catalogue.GetAllInfo();
         SetRenderSettings(doc.GetRoot().AsMap().at("render_settings").AsMap(), map_renderer);
-        //std::cerr << "Render Settings is complited!" << std::endl;
-        FormRouteBase(doc.GetRoot().AsMap().at("routing_settings").AsMap(), transport_router, transport_catalogue);
-        //std::cerr << "Route Base is complited!" << std::endl;
+        // std::cerr << "Render Settings is complited!" << std::endl;
+        router::TransportRouter transport_router(doc.GetRoot().AsMap().at("routing_settings").AsMap().at("bus_wait_time").AsInt(), doc.GetRoot().AsMap().at("routing_settings").AsMap().at("bus_velocity").AsInt(), transport_catalogue);
+        // std::cerr << "Route Base is complited!" << std::endl;
+        guide::RequestHandler request_handler(transport_catalogue, map_renderer, transport_router);
         json::Document requests(FormRequestsAnswers(doc.GetRoot().AsMap().at("stat_requests").AsArray(), request_handler));
-        //std::cerr << "Requests Answers is complited!" << std::endl;
+        // std::cerr << "Requests Answers is complited!" << std::endl;
         json::Print(requests, output);
     }
 }

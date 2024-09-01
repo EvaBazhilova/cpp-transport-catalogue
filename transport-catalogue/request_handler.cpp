@@ -91,34 +91,31 @@ namespace guide
         }
         else
         {
-            std::optional<typename graph::Router<double>::RouteInfo> route = transport_router_.BuildRoute(stop_from, stop_to);
+            std::optional<std::vector<std::variant<guide::RouteWaitInfo, guide::RouteBusInfo>>> route = std::move(transport_router_.GetRouteInfo(stop_from, stop_to));
             if (!route)
             {
                 answers_info.Key("request_id").Value(id).Key("error_message").Value(std::string("not found"));
             }
             else
             {
-                graph::Router<double>::RouteInfo info = route.value();
                 answers_info.Key("items");
                 answers_info.StartArray();
                 std::setprecision(6);
                 double total_time = 0.0;
-                const auto &graph = transport_router_.GetGraph();
-                for (const auto &edge : info.edges)
+                for (const auto &item : route.value())
                 {
-                    const auto& graph_edge = graph->GetEdge(edge);
                     // graph.GetEdge(edge).Print();
-                    if (std::abs(static_cast<int>(graph_edge.from - graph_edge.to)) == transport_router_.GetStopsCount())
+                    if (std::holds_alternative<guide::RouteWaitInfo>(item))
                     {
                         // std::cout << "Wait" << std::endl;
-                        answers_info.StartDict().Key("type").Value("Wait").Key("stop_name").Value(transport_router_.GetStopName(graph_edge.from)).Key("time").Value(transport_router_.GetBusTimeWait()).EndDict();
-                        total_time += graph_edge.weight;
+                        answers_info.StartDict().Key("type").Value("Wait").Key("stop_name").Value(std::get<guide::RouteWaitInfo>(item).stop_name).Key("time").Value(std::get<guide::RouteWaitInfo>(item).time).EndDict();
+                        total_time += std::get<guide::RouteWaitInfo>(item).time;
                     }
                     else
                     {
                         // std::cout << "Bus" << std::endl;
-                        answers_info.StartDict().Key("type").Value("Bus").Key("bus").Value(transport_router_.GetBus(graph_edge)).Key("span_count").Value(transport_router_.GetSpanCount(graph_edge)).Key("time").Value(graph_edge.weight).EndDict();
-                        total_time += graph_edge.weight;
+                        answers_info.StartDict().Key("type").Value("Bus").Key("bus").Value(std::get<guide::RouteBusInfo>(item).bus).Key("span_count").Value(std::get<guide::RouteBusInfo>(item).span_count).Key("time").Value(std::get<guide::RouteBusInfo>(item).time).EndDict();
+                        total_time += std::get<guide::RouteBusInfo>(item).time;
                     }
                 }
                 std::setprecision(6);

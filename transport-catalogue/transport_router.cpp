@@ -7,18 +7,9 @@
 
 namespace router
 {
-    TransportRouter &TransportRouter::SetBusWaitTime(int bus_wait_time)
-    {
-        bus_wait_time_ = bus_wait_time;
-        return *this;
-    }
-    TransportRouter &TransportRouter::SetBusVelocity(int bus_velocity)
-    {
-        bus_velocity_ = bus_velocity;
-        return *this;
-    }
-
-    void TransportRouter::FormTransportRouter(guide::TransportCatalogue &transport_catalogue)
+    TransportRouter::TransportRouter(int bus_wait_time, int bus_velocity, guide::TransportCatalogue &transport_catalogue)
+        : bus_wait_time_(bus_wait_time),
+          bus_velocity_(bus_velocity)
     {
         const double H_TO_M = 0.06;
         const auto stops_count = transport_catalogue.GetStopsCount();
@@ -27,7 +18,6 @@ namespace router
         const std::map<std::string_view, std::vector<std::string_view>> &buses = transport_catalogue.GetOneWayBuses();
         for (const auto &[name, stops] : buses)
         {
-            //std::cout << name << std::endl;
             if (transport_catalogue.IsBusRound(name))
             {
                 for (size_t i = 0; i < stops.size() - 1; i++)
@@ -74,37 +64,44 @@ namespace router
         }
         graph_ = std::move(std::make_unique<graph::DirectedWeightedGraph<double>>(graph));
         router_ = std::move(std::make_unique<graph::Router<double>>(graph::Router<double>(*graph_)));
-        /*std::cout << graph_.GetEdgeCount() << std::endl;
-        std::cout << graph_.GetVertexCount() << std::endl;
-        const auto help = graph_.GetIncidentEdges(0);/*/
-        /*for (const auto &[id, name] : bus_edges_)
-        {
-            std::cout << std::get<0>(id) << " " << std::get<1>(id) << " " << std::get<2>(id) << " " << name << std::endl;
-        }*/
-        // PrintGraph();
-        //    std::cout << "Graph printing" << std::endl;
     }
 
-    void TransportRouter::GetBusInfo() const
+    void TransportRouter::PrintBusInfo() const
     {
         std::cout << "bus_wait_time:  " << bus_wait_time_ << std::endl;
         std::cout << "bus_velocity:  " << bus_velocity_ << std::endl;
     }
 
-    const std::unique_ptr<graph::DirectedWeightedGraph<double>> &TransportRouter::GetGraph() const
-    {
-        return graph_;
-    }
 
     size_t TransportRouter::GetStopNumber(std::string_view stop) const
     {
         return static_cast<size_t>(distance(stops_names_.begin(), stops_names_.find(stop)));
     }
 
-    std::optional<graph::Router<double>::RouteInfo> TransportRouter::BuildRoute(std::string_view from, std::string_view to) const
+    std::optional<std::vector<std::variant<guide::RouteWaitInfo, guide::RouteBusInfo>>> TransportRouter::GetRouteInfo(std::string_view from, std::string_view to) const
     {
-        // std::cout << GetStopNumber(from) << " " << GetStopNumber(to) + stops_names_.size() << std::endl;
-        return router_->BuildRoute(GetStopNumber(from) + stops_names_.size(), GetStopNumber(to) + stops_names_.size());
+        const auto route = router_->BuildRoute(GetStopNumber(from) + stops_names_.size(), GetStopNumber(to) + stops_names_.size());
+        std::vector<std::variant<guide::RouteWaitInfo, guide::RouteBusInfo>> route_info;
+        if (!route)
+        {
+            return {};
+        }
+        graph::Router<double>::RouteInfo info = route.value();
+        for (const auto &edge : info.edges)
+        {
+            const auto &graph_edge = graph_->GetEdge(edge);
+            if (std::abs(static_cast<int>(graph_edge.from - graph_edge.to)) == GetStopsCount())
+            {
+                // std::cout << "Wait" << std::endl;
+                route_info.push_back(guide::RouteWaitInfo{GetStopName(graph_edge.from), GetBusTimeWait()});
+            }
+            else
+            {
+                // std::cout << "Bus" << std::endl;
+                route_info.push_back(guide::RouteBusInfo{GetBus(graph_edge), GetSpanCount(graph_edge), graph_edge.weight});
+            }
+        }
+        return route_info;
     }
 
     void TransportRouter::PrintGraph()
@@ -140,17 +137,14 @@ namespace router
 
         for (size_t i = from; i != to; i += step)
         {
-            // std::cout << i << " " << i+step << std::endl;
             distance += transport_catalogue.GetDistance(stops[i], stops[i + step]);
         }
 
-        // std::cout << from << " " << to << " " << distance << std::endl;
         return distance;
     }
 
     std::string TransportRouter::GetBus(const graph::Edge<double> &edge) const
     {
-        // std::cout << "Bus " << bus_edges_.at({edge.from, edge.to, edge.weight}) << std::endl;
         return bus_edges_.at({edge.from, edge.to, edge.weight}).first;
     }
 

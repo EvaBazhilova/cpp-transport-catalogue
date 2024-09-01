@@ -32,7 +32,6 @@ namespace graph
         };
 
         std::optional<RouteInfo> BuildRoute(VertexId from, VertexId to) const;
-        //void Print() const;
 
     private:
         struct RouteInternalData
@@ -116,8 +115,6 @@ namespace graph
     std::optional<typename Router<Weight>::RouteInfo> Router<Weight>::BuildRoute(VertexId from,
                                                                                  VertexId to) const
     {
-        // std::cout << "Creating" <<std::endl;
-        //Print();
         const auto &route_internal_data = routes_internal_data_.at(from).at(to);
 
         if (!route_internal_data)
@@ -130,7 +127,6 @@ namespace graph
              edge_id;
              edge_id = routes_internal_data_[from][graph_.GetEdge(*edge_id).from]->prev_edge)
         {
-            //std::cout << *edge_id << std::endl;
             edges.push_back(*edge_id);
         }
         std::reverse(edges.begin(), edges.end());
